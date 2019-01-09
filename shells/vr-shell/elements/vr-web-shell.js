@@ -5,9 +5,9 @@
 // subject to an additional IP rights grant found at
 // http://polymer.github.io/PATENTS.txt
 
-import AppShell from '../../app-shell/app-shell.js';
+import WebShell from '../../web-shell/elements/web-shell.js';
 
-class VrAppShell extends AppShell {
+class VrWebShell extends WebShell {
   _updateConfig(state, oldState) {
     super._updateConfig(state, oldState);
     const {config} = state;
