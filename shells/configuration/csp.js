@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 */
 (() => {
   // TODO(sjmiles): (1) this is probably the wrong place for this enforcement, (2) I probably didn't catch all the cases
-  // enfore HTTPS protocol (otherwise, crypto won't work and there are derivative errors)
+  // enforce HTTPS protocol (otherwise, crypto won't work and there are derivative errors)
   if (location.protocol.toLowerCase() !== 'https:' && !location.host.toLowerCase().startsWith('localhost')) {
     console.error('Must use a secure connection (HTTPS)');
     location.assign(location.href.toLowerCase().replace('http', 'https'));

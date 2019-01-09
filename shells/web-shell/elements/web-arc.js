@@ -12,9 +12,9 @@ import {Xen} from '../../lib/xen.js';
 import {ArcHost} from '../../lib/arc-host.js';
 import {Modality, ModalityHandler} from '../../lib/arcs.js';
 import {SlotComposer} from '../../lib/arcs.js';
-import {Utils} from '../../lib/utils.js';
 
 const log = Xen.logFactory('WebArc', '#cb23a6');
+const warn = Xen.logFactory('WebArc', '#cb23a6', 'warn');
 
 const template = Xen.Template.html`
   <style>
@@ -34,6 +34,7 @@ const template = Xen.Template.html`
   <div slotid="toproot"></div>
   <div slotid="root"></div>
   <div slotid="modal"></div>
+  <slot></slot>
 `;
 
 /*
@@ -52,10 +53,24 @@ export class WebArc extends Xen.Debug(Xen.Async, log) {
     return template;
   }
   _didMount() {
-    this.containers = {
-      toproot: this.host.querySelector('[slotid="toproot"]'),
-      root: this.host.querySelector('[slotid="root"]'),
-      modal: this.host.querySelector('[slotid="modal"]')
+    // if they exist, use child slots for containers; otherwise use internal slots
+    this.containers = this.findDefaultContainers(this.findSlots() || this.host);
+    warn(this.containers);
+  }
+  findSlots() {
+    const slot = this.querySelector('slot');
+    if (slot) {
+      const slotNodes = slot.assignedNodes();
+      if (slotNodes.length) {
+        return slotNodes[0].parentElement;
+      }
+    }
+  }
+  findDefaultContainers(host) {
+    return {
+      toproot: host.querySelector('[slotid="toproot"]'),
+      root: host.querySelector('[slotid="root"]'),
+      modal: host.querySelector('[slotid="modal"]')
     };
   }
   update(props, state) {

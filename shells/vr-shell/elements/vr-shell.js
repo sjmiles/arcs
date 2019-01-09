@@ -5,9 +5,9 @@
 // subject to an additional IP rights grant found at
 // http://polymer.github.io/PATENTS.txt
 
-import WebShell from '../../web-shell/elements/web-shell.js';
+import {WebShell} from '../../web-shell/elements/web-shell.js';
 
-class VrWebShell extends WebShell {
+class VrShell extends WebShell {
   _updateConfig(state, oldState) {
     super._updateConfig(state, oldState);
     const {config} = state;
@@ -21,5 +21,5 @@ class VrWebShell extends WebShell {
     }
   }
 }
-customElements.define('vr-app-shell', VrAppShell);
+customElements.define('vr-shell', VrShell);
 

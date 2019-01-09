@@ -1,3 +1,12 @@
+<!--
+@license
+Copyright (c) 2018 Google Inc. All rights reserved.
+This code may only be used under the BSD style license found at
+http://polymer.github.io/LICENSE.txt
+Code distributed by Google as part of this project is also
+subject to an additional IP rights grant found at
+http://polymer.github.io/PATENTS.txt
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -7,27 +16,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-  <link rel="manifest" href="../common/manifest.json"/>
-  <link rel="shortcut icon" href="../common/logo_64.png">
+  <!-- <script src="../configuration/csp.js"></script> -->
+
+  <link rel="manifest" href="../configuration/manifest.json"/>
+  <link rel="shortcut icon" href="../configuration/logo_64.png">
+
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,700">
-  <link rel="stylesheet" href="../common/index.css">
+  <link rel="stylesheet" href="../configuration/index.css">
 
-  <script src="https://aframe.io/releases/0.8.0/aframe.min.js"></script>
+  <script type="module" src="../lib/env/web/env.js"></script>
+
+  <script type="module" src="./index.js"></script>
+  <script type="module" src="../configuration/whitelisted.js"></script>
+  <script type="module" src="./elements/vr-shell.js"></script>
+
+  <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
   <script src="https://unpkg.com/aframe-html-shader@0.2.0/dist/aframe-html-shader.min.js"></script>
-
-  <script type="module">
-    // global configuration
-    import '../common/config.js';
-    // firebase config is required before loading arcs runtime
-    import '../common/firebase-config.js';
-    // arcs runtime
-    import '../../build/ArcsLib.js';
-    // components for particle use
-    import '../common/whitelisted.js';
-    import '../../modalities/dom/components/third-party/aframe-html.js';
-    // shell
-    import './vr-app-shell.js';
-  </script>
 
   <style>
     body {
@@ -43,7 +47,7 @@
 </head>
 <body>
 
-  <vr-app-shell>
+  <vr-shell>
     <a-scene id="particles">
       <a-entity light="type:directional; castShadow: true;" position="1 1 1"></a-entity>
       <a-sky color="#DCDCDC" src="assets/tokyo (candy bar).jpg"></a-sky>
@@ -54,7 +58,7 @@
       <a-entity slotid="modal"></a-entity>
     </a-scene>
     <div slotid="suggestions" slot="suggestions"></div>
-  </vr-app-shell>
+  </vr-shell>
 
   <div vrhtml style="width: 500%; height: 100%; position: fixed; left: 0; top: 0; z-index: -1; overflow: hidden"></div>
 
