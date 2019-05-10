@@ -7,24 +7,21 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-// TODO(alxr): should these go into `functional`?
+// TODO(alxr): should this go into `functional` or a "types" file?
 interface Dictionary<T>  {
   [key: string]: T;
 }
 
-type Mapper<I, O> = (input: I) => O;
-
-
 interface Service {
-  // tslint:disable-next-line:no-any
-  [name: string]: Mapper<ServiceRequest, Promise<any>>;
+  [name: string]: Function;
 }
+
 
 type Registry = Dictionary<Service>;
 
 interface ServiceRequest {
-  service: string;
-  invoke: string;
+  service?: string;
+  invoke?: string;
   call?: string;
 }
 
@@ -52,7 +49,7 @@ export class Services {
 Object.freeze(Services);
 
 Services.register('test', {
-  async classify(request: ServiceRequest) {
+  async classify(request) {
     return {data: `it's a pig, that don't fly straight`};
   }
 });
