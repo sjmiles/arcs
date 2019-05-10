@@ -21,11 +21,19 @@ export class Schema {
   description: {[index: string]: string} = {};
   isAlias: boolean;
 
+  // For convenience, primitive field types can be specified as {name: 'Type'}
+  // in `fields`; the constructor will convert these to the correct schema form.
   // tslint:disable-next-line: no-any
   constructor(names: string[], fields: {[index: string]: any}, description?) {
     this.names = names;
-    this.fields = fields;
-
+    this.fields = {};
+    for (const [name, field] of Object.entries(fields)) {
+      if (typeof(field) === 'string') {
+        this.fields[name] = {kind: 'schema-primitive', type: field};
+      } else {
+        this.fields[name] = field;
+      }
+    }
     if (description) {
       description.description.forEach(desc => this.description[desc.name] = desc.pattern || desc.patterns[0]);
     }
@@ -82,15 +90,13 @@ export class Schema {
   }
 
   static _typeString(type): string {
-    if (typeof(type) !== 'object') {
-      assert(typeof type === 'string');
-      return type;
-    }
     switch (type.kind) {
+      case 'schema-primitive':
+        return type.type;
       case 'schema-union':
-        return `(${type.types.join(' or ')})`;
+        return `(${type.types.map(t => t.type).join(' or ')})`;
       case 'schema-tuple':
-        return `(${type.types.join(', ')})`;
+        return `(${type.types.map(t => t.type).join(', ')})`;
       case 'schema-reference':
         return `Reference<${Schema._typeString(type.schema)}>`;
       case 'type-name':
@@ -190,64 +196,5 @@ export class Schema {
       }
     }
     return results.join('\n');
-  }
-
-  // Returns a JSON representation that protobufjs can use to de/serialize entity data as protobufs.
-  toProtoJSON() {
-    assert(this.names.length > 0, 'At least one schema name is required for proto-json conversion');
-
-    let id = 0;
-    let hasUrl = false;
-    const fields = {};
-    for (const [name, type] of Object.entries(this.fields).sort()) {
-      id++;
-      let field;
-      if (type.kind === 'schema-collection') {
-        field = {rule: 'repeated', type: this.jsonBaseType(type.schema), id};
-      } else {
-        field = {type: this.jsonBaseType(type), id};
-      }
-      hasUrl = hasUrl || (field.type === 'Url');
-      fields[name] = field;
-    }
-    const json = {
-      nested: {
-        [this.name]: {fields}
-      }
-    };
-    if (hasUrl) {
-      json.nested.Url = {fields: {href: {type: 'string', id: 1}}};
-    }
-    return json;
-  }
-
-  private jsonBaseType(type) {
-    const kind = type.kind || type;
-    switch (kind) {
-      case 'Text':
-        return 'string';
-
-      case 'URL':
-        return 'Url';
-
-      case 'Number':
-        return 'double';
-
-      case 'Boolean':
-        return 'bool';
-
-      case 'Bytes':
-      case 'Object':
-      case 'schema-union':
-      case 'schema-tuple':
-      case 'schema-reference':
-        throw new Error(`'${kind}' not yet supported for schema to proto-json conversion`);
-
-      case 'schema-collection':
-        throw new Error(`Nested collections not yet supported for schema to proto-json conversion`);
-
-      default:
-        throw new Error(`Unknown type '${kind}' in schema ${this.name}`);
-    }
   }
 }
