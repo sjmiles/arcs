@@ -49,14 +49,19 @@ export const createTestDevice = (paths, storage) => {
 };
 
 const echo = json => {
-  const data = JSON.parse(json);
-  const formatted = JSON.stringify(data, null, '  ');
-  const simple = JSON.stringify(data);
-  document.body.appendChild(Object.assign(document.createElement('pre'), {
-    style: 'padding: 8px; border: 1px solid silver; margin: 8px; overflow-x: hidden;',
-    textContent: formatted,
-    title: simple.replace(/"/g, '\'')
-  }));
+  if (!echo.node) {
+    echo.node = document.body.appendChild(document.createElement('div'));
+    echo.index = 0;
+  }
+  echo.node.innerText = echo.index++;
+  // const data = JSON.parse(json);
+  // const formatted = JSON.stringify(data, null, '  ');
+  // const simple = JSON.stringify(data);
+  // document.body.appendChild(Object.assign(document.createElement('pre'), {
+  //   style: 'padding: 8px; border: 1px solid silver; margin: 8px; overflow-x: hidden;',
+  //   textContent: formatted,
+  //   title: simple.replace(/"/g, '\'')
+  // }));
 };
 
 const smokeTest = async (bus) => {
@@ -112,14 +117,35 @@ const smokeTest = async (bus) => {
     send({message: 'runArc', arcId: 'pipe-notification-test3', modality: 'dom', recipe: 'Notification'});
   };
   //
+  const stressTest = () => {
+    console.profile();
+    // async `runArc` commands are performed serially
+    let count = 0;
+    const spawn = () => {
+      if (count > 0) {
+        echo(count);
+        send({message: 'stopArc', arcId: `pipe-stress-test-${count-1}`});
+      }
+      send({message: 'runArc', arcId: `pipe-stress-test-${count}`, Xrecipe: 'Notification'});
+      if (count++ < 500) {
+        setTimeout(spawn, 1);
+        //document.body.parentElement.scrollTop = 9e5;
+      } else {
+        console.profileEnd();
+      }
+    };
+    spawn();
+  };
+  //
   // perform tests
   enqueue([
-    enableIngestion,
-    ingestionTest,
-    autofillTest,
-    notificationTest,
-    wasmTest,
-    parseTest,
-    runArcSerialTest
+    // enableIngestion,
+    // ingestionTest,
+    // autofillTest,
+    // notificationTest,
+    // wasmTest,
+    // parseTest,
+    // runArcSerialTest,
+    stressTest
   ], 500);
 };
