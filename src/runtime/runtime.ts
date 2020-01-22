@@ -31,6 +31,7 @@ import {pecIndustry} from '../platform/pec-industry.js';
 import {logsFactory} from '../platform/logs-factory.js';
 import {SystemTrace} from '../tracelib/systrace.js';
 import {workerPool} from './worker-pool.js';
+import {StorageKeyParser} from './storageNG/storage-key-parser.js';
 
 const {warn} = logsFactory('Runtime', 'orange');
 
@@ -126,7 +127,7 @@ export class Runtime {
       pecFactory,
       memoryProvider
     });
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    //RamDiskStorageDriverProvider.register(memoryProvider);
     return runtime;
   }
 
@@ -316,7 +317,7 @@ export class Runtime {
       fileName: './serialized.manifest',
       serialization,
       context,
-      storageKey: storage || 'volatile',
+      storageKey: storage /*|| StorageKeyParser.parse('volatile://')*/,
       slotComposer: composer,
       pecFactories: [this.pecFactory, ...(portFactories || [])],
       loader: this.loader,

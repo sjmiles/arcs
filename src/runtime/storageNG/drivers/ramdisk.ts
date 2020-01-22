@@ -48,7 +48,7 @@ export class RamDiskStorageKey extends StorageKey {
  * tied to a specific running Arc.
  */
 export class RamDiskStorageDriverProvider implements StorageDriverProvider {
-  private readonly memoryProvider: VolatileMemoryProvider;
+  /*private*/ readonly memoryProvider: VolatileMemoryProvider;
 
   constructor(memoryProvider: VolatileMemoryProvider) {
     this.memoryProvider = memoryProvider;

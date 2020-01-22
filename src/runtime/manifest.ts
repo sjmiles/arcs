@@ -52,6 +52,7 @@ import {RamDiskStorageKey} from './storageNG/drivers/ramdisk.js';
 import {CRDTSingletonTypeRecord} from './crdt/crdt-singleton.js';
 import {Entity, SerializedEntity} from './entity.js';
 import {Refinement} from './refiner.js';
+import {DriverFactory} from './storageNG/drivers/driver-factory.js';
 
 export enum ErrorSeverity {
   Error = 'error',
@@ -1293,6 +1294,10 @@ ${e.message}
     if (Flags.useNewStorageStack) {
       const storageKey = item['storageKey'] || manifest.createLocalDataStorageKey();
       if (storageKey instanceof RamDiskStorageKey) {
+        console.warn('USING RAMDISK DESERIALIZE');
+        const key = StorageKeyParser.parse('ramdisk');
+        const driver = await DriverFactory.driverInstance(key, Exists.ShouldCreate);
+        memoryProvider = driver['memoryProvider'];
         if (!memoryProvider) {
           throw new ManifestError(item.location, `Creating ram disk stores requires having a memory provider.`);
         }
