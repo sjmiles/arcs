@@ -53,7 +53,8 @@ const echo = json => {
     echo.node = document.body.appendChild(document.createElement('div'));
     echo.index = 0;
   }
-  echo.node.innerText = echo.index++;
+  //echo.node.innerText = echo.index++;
+  echo.node.innerText = json;
   // const data = JSON.parse(json);
   // const formatted = JSON.stringify(data, null, '  ');
   // const simple = JSON.stringify(data);
@@ -126,8 +127,8 @@ const smokeTest = async (bus) => {
         echo(count);
         send({message: 'stopArc', arcId: `pipe-stress-test-${count-1}`});
       }
-      send({message: 'runArc', arcId: `pipe-stress-test-${count}`, Xrecipe: 'Notification'});
-      if (count++ < 500) {
+      if (count++ < 1) {
+        send({message: 'runArc', arcId: `pipe-stress-test-${count}`, Xrecipe: 'Notification'});
         setTimeout(spawn, 1);
         //document.body.parentElement.scrollTop = 9e5;
       } else {
