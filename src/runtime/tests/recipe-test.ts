@@ -24,8 +24,8 @@ import {RamDiskStorageDriverProvider} from '../storageNG/drivers/ramdisk.js';
 describe('recipe', () => {
   let memoryProvider;
   beforeEach(() => {
-      memoryProvider = new TestVolatileMemoryProvider();
-      RamDiskStorageDriverProvider.register(memoryProvider);
+      //memoryProvider = new TestVolatileMemoryProvider();
+      //RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   it('normalize errors', async () => {

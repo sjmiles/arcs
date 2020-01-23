@@ -88,8 +88,9 @@ class TestPlanProducer extends PlanProducer {
 describe('plan producer', () => {
   async function createProducer() {
     const loader = new StubLoader({});
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    //const memoryProvider = new TestVolatileMemoryProvider();
+    //RamDiskStorageDriverProvider.register(memoryProvider);
     const context = await Manifest.load('./src/runtime/tests/artifacts/Products/Products.recipes', loader, {memoryProvider});
     const runtime = new Runtime({
         loader, composerClass: FakeSlotComposer, context, memoryProvider});

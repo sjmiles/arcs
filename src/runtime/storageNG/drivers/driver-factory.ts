@@ -21,15 +21,17 @@ export interface StorageDriverProvider {
 
 export class DriverFactory {
   static clearRegistrationsForTesting() {
-    this.providers = new Set();
-    StorageKeyParser.reset();
+    // console.warn('CLEARREGISTRATIONS');
+    // debugger;
+    // this.providers = new Set();
+    // StorageKeyParser.reset();
   }
   static providers: Set<StorageDriverProvider> = new Set();
+
   static async driverInstance<Data>(storageKey: StorageKey, exists: Exists) {
-    for (const provider of this.providers) {
-      if (provider.willSupport(storageKey)) {
-        return provider.driver<Data>(storageKey, exists);
-      }
+    const provider = this.locateProvider(storageKey);
+    if (provider) {
+      return provider.driver<Data>(storageKey, exists);
     }
     return null;
   }
@@ -42,12 +44,16 @@ export class DriverFactory {
     this.providers.delete(storageDriverProvider);
   }
 
-  static willSupport(storageKey: StorageKey) {
+  static locateProvider(storageKey: StorageKey): StorageDriverProvider {
     for (const provider of this.providers) {
       if (provider.willSupport(storageKey)) {
-        return true;
+        return provider;
       }
     }
-    return false;
+    return null;
+  }
+
+  static willSupport(storageKey: StorageKey) {
+    return this.locateProvider(storageKey) !== null;
   }
 }

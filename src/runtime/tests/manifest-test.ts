@@ -44,8 +44,8 @@ describe('manifest', async () => {
 
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    //memoryProvider = new TestVolatileMemoryProvider();
+    //RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   const parseManifest = async (content: string, options: ManifestParseOptions = {memoryProvider}): Promise<Manifest> => {

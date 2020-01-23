@@ -37,8 +37,9 @@ describe('suggestion composer', () => {
       this.skip();
     }
     const loader = new Loader();
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const context = await Manifest.load('./src/runtime/tests/artifacts/suggestions/Cake.recipes', loader, {memoryProvider});
     const runtime = new Runtime({loader, context, memoryProvider});
     const arc = runtime.newArc('demo', storageKeyPrefixForTest());
@@ -93,8 +94,9 @@ describe('suggestion composer', () => {
       this.skip();
     }
     const loader = new Loader();
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const manifestFile = './src/runtime/tests/artifacts/suggestions/Cakes.recipes';
     const context = await Manifest.load(manifestFile, loader, {memoryProvider});
     const runtime = new Runtime({loader, context, memoryProvider});

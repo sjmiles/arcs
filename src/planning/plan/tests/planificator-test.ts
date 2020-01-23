@@ -68,8 +68,8 @@ describe('remote planificator', () => {
 
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   afterEach(() => {

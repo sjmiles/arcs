@@ -20,8 +20,8 @@ import {StrategyTestHelper} from '../../testing/strategy-test-helper.js';
 describe('CoalesceRecipes', () => {
   let memoryProvider;
   beforeEach(() => {
-      memoryProvider = new TestVolatileMemoryProvider();
-      RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   async function tryCoalesceRecipes(manifestStr: string) {

@@ -21,8 +21,9 @@ import {RamDiskStorageDriverProvider} from '../../runtime/storageNG/drivers/ramd
 describe('transformation slots', () => {
   it('combines hosted particles provided singleton slots into transformation provided set slot', async () => {
     const loader = new Loader();
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const context = await Manifest.load(
         './src/tests/particles/artifacts/provide-hosted-particle-slots.manifest', loader, {memoryProvider});
     const runtime = new Runtime({

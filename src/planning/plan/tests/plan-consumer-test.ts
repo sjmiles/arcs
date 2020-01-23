@@ -45,8 +45,9 @@ async function storeResults(consumer: PlanConsumer, suggestions: Suggestion[]) {
 describe('plan consumer', () => {
   it('consumes', async () => {
     const loader = new StubLoader({});
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    //const memoryProvider = new TestVolatileMemoryProvider();
+    //RamDiskStorageDriverProvider.register(memoryProvider);
     const context =  await Manifest.parse(`
       import './src/runtime/tests/artifacts/Products/Products.recipes'
 
@@ -138,8 +139,9 @@ describe('plan consumer', () => {
         `;
       };
       const loader = new StubLoader({});
-      const memoryProvider = new TestVolatileMemoryProvider();
-      RamDiskStorageDriverProvider.register(memoryProvider);
+      const memoryProvider = null;
+      // const memoryProvider = new TestVolatileMemoryProvider();
+      // RamDiskStorageDriverProvider.register(memoryProvider);
       const context =  await Manifest.parse(`
 particle ParticleDom in './src/runtime/tests/artifacts/consumer-particle.js'
   root: consumes Slot

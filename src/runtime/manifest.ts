@@ -48,7 +48,7 @@ import {StorageKey} from './storageNG/storage-key.js';
 import {Exists} from './storageNG/drivers/driver.js';
 import {StorageKeyParser} from './storageNG/storage-key-parser.js';
 import {VolatileMemoryProvider} from './storageNG/drivers/volatile.js';
-import {RamDiskStorageKey} from './storageNG/drivers/ramdisk.js';
+import {RamDiskStorageKey, RamDiskStorageDriverProvider} from './storageNG/drivers/ramdisk.js';
 import {CRDTSingletonTypeRecord} from './crdt/crdt-singleton.js';
 import {Entity, SerializedEntity} from './entity.js';
 import {Refinement} from './refiner.js';
@@ -398,6 +398,7 @@ export class Manifest {
 
   static async load(fileName: string, loader: Loader, options: ManifestLoadOptions = {}): Promise<Manifest> {
     let {registry, memoryProvider} = options;
+    memoryProvider = null;
     registry = registry || {};
     if (registry && registry[fileName]) {
       return await registry[fileName];
@@ -423,6 +424,7 @@ export class Manifest {
   static async parse(content: string, options: ManifestParseOptions = {}): Promise<Manifest> {
     // TODO(sjmiles): allow `context` for including an existing manifest in the import list
     let {fileName, loader, registry, context, memoryProvider} = options;
+    memoryProvider = null;
     registry = registry || {};
     const id = `manifest:${fileName}:`;
 
@@ -1295,13 +1297,21 @@ ${e.message}
       const storageKey = item['storageKey'] || manifest.createLocalDataStorageKey();
       if (storageKey instanceof RamDiskStorageKey) {
         console.warn('USING RAMDISK DESERIALIZE');
-        const key = StorageKeyParser.parse('ramdisk');
-        const driver = await DriverFactory.driverInstance(key, Exists.ShouldCreate);
-        memoryProvider = driver['memoryProvider'];
-        if (!memoryProvider) {
-          throw new ManifestError(item.location, `Creating ram disk stores requires having a memory provider.`);
+        const provider = DriverFactory.locateProvider(storageKey) as RamDiskStorageDriverProvider;
+        //const driver = await DriverFactory.driverInstance(storageKey, Exists.ShouldCreate);
+        const memory = provider.memoryProvider.getVolatileMemory();
+        if (!memory) {
+           throw new ManifestError(item.location, `Creating ram disk stores requires having a memory provider.`);
         }
-        memoryProvider.getVolatileMemory().deserialize(entities, storageKey.unique);
+        memory.deserialize(entities, storageKey.unique);
+
+        //const key = StorageKeyParser.parse('ramdisk');
+        //const driver = await DriverFactory.driverInstance(key, Exists.ShouldCreate);
+        // memoryProvider = driver['memoryProvider'];
+        // if (!memoryProvider) {
+        //   throw new ManifestError(item.location, `Creating ram disk stores requires having a memory provider.`);
+        // }
+        // memoryProvider.getVolatileMemory().deserialize(entities, storageKey.unique);
       }
       // Note that we used to use a singleton entity ID (if present) instead of the hash. It seems
       // cleaner not to rely on that.

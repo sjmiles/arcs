@@ -36,8 +36,8 @@ describe('recipe descriptions test', () => {
         }
       });`
     });
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   function createManifestString(options) {

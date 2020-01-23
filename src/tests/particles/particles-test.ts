@@ -22,8 +22,8 @@ describe('Particle definitions', () => {
 
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   filenames

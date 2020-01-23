@@ -21,8 +21,8 @@ const {createTestArc, onlyResult, theResults, noResult} = StrategyTestHelper;
 describe('resolve recipe', () => {
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   it('does not resolve a mapping of a handle with an invalid type', async () => {

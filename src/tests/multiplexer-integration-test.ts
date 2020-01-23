@@ -24,8 +24,9 @@ import {DriverFactory} from '../runtime/storageNG/drivers/driver-factory.js';
 
 describe('Multiplexer', () => {
   it('renders polymorphic multiplexed slots', async () => {
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const loader = new Loader();
     const manifest = './src/tests/particles/artifacts/polymorphic-muxing.recipes';
     const context = await Manifest.load(manifest, loader, {memoryProvider});

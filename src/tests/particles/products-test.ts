@@ -43,13 +43,14 @@ describe('products test', () => {
 
   it('filters', async () => {
     const loader = new Loader();
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const runtime = new Runtime({
-        loader,
-        context: await Manifest.load(manifestFilename, loader, {memoryProvider}),
-        memoryProvider
-      });
+      loader,
+      context: await Manifest.load(manifestFilename, loader, {memoryProvider}),
+      memoryProvider
+    });
     const arc = runtime.newArc('demo', storageKeyPrefixForTest());
     const recipe = arc.context.recipes.find(r => r.name === 'FilterBooks');
     assert.isTrue(recipe.normalize() && recipe.isResolved());
@@ -60,8 +61,9 @@ describe('products test', () => {
 
   it('filters and displays', async () => {
     const loader = new Loader();
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const slotComposer = new SlotComposer();
     const id = IdGenerator.newSession().newArcId('demo');
     const arc = new Arc({

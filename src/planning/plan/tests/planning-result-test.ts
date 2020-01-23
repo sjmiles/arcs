@@ -25,8 +25,8 @@ import {StrategyTestHelper} from '../../testing/strategy-test-helper.js';
 describe('planning result', () => {
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   async function testResultSerialization(manifestFilename) {
@@ -89,8 +89,8 @@ describe('planning result', () => {
 describe('planning result merge', () => {
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   const commonManifestStr = `

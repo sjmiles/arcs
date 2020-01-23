@@ -117,17 +117,7 @@ export class Runtime {
     const map = {...Runtime.mapFromRootPath(root), ...urls};
     const loader = new Loader(map);
     const pecFactory = pecIndustry(loader);
-    const memoryProvider = new SimpleVolatileMemoryProvider();
-    // TODO(sjmiles): SlotComposer type shenanigans are temporary pending complete replacement
-    // of SlotComposer by SlotComposer. Also it's weird that `new Runtime(..., SlotComposer, ...)`
-    // doesn't bother tslint at all when done in other modules.
-    const runtime = new Runtime({
-      loader,
-      composerClass: SlotComposer,
-      pecFactory,
-      memoryProvider
-    });
-    //RamDiskStorageDriverProvider.register(memoryProvider);
+    const runtime = new Runtime({loader, pecFactory});
     return runtime;
   }
 
@@ -149,6 +139,17 @@ export class Runtime {
   }
 
   constructor({loader, composerClass, context, pecFactory, memoryProvider}: RuntimeOptions = {}) {
+    // configure RamDiskStorageDriverProvider
+    // TODO(sjmiles): today we can only register one RamDiskStorageDriverProvider with it's
+    // MemoryProvider baked in, but the goal is to have RamDiskStorageDriverProvider access
+    // keyed on Runtime (like VolatileProvider is keyed on Arc).
+    if (!Runtime['hasRegisteredStorage']) {
+      console.warn('REGISTERING RamDiskStorageDriverProvider from RUNTIME');
+      Runtime['hasRegisteredStorage'] = true;
+      memoryProvider = memoryProvider || new SimpleVolatileMemoryProvider();
+      RamDiskStorageDriverProvider.register(memoryProvider);
+    }
+    //
     this.cacheService = new RuntimeCacheService();
     // We have to do this here based on a vast swathe of tests that just create
     // a Runtime instance and forge ahead. This is only temporary until we move
@@ -161,7 +162,7 @@ export class Runtime {
     this.pecFactory = pecFactory;
     this.composerClass = composerClass || SlotComposer;
     this.context = context || new Manifest({id: 'manifest:default'});
-    this.memoryProvider = memoryProvider || new SimpleVolatileMemoryProvider();
+    this.memoryProvider = memoryProvider;
     runtime = this;
     // user information. One persona per runtime for now.
   }

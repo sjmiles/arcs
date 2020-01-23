@@ -399,7 +399,7 @@ const entityString = Flags.useNewStorageStack ?
   :
   '[{"text": "asdf"}]';
 
-describe('FlowGraph validation', () => {
+describe('FlowGraph validation FOOB', () => {
   it('succeeds when there are no checks', async () => {
     const graph = await buildFlowGraph(`
       particle P
@@ -871,7 +871,7 @@ describe('FlowGraph validation', () => {
     ]);
   });
 
-  it('can detect failures for different checks', async () => {
+  it('can detect failures for different checks FOOB', async () => {
     const graph = await buildFlowGraph(`
       particle P1
         foo1: writes Foo {}
@@ -898,7 +898,7 @@ describe('FlowGraph validation', () => {
     ]);
   });
 
-  it('supports datastore tag claims', async () => {
+  it('supports datastore tag claims FOOB', async () => {
     const graph = await buildFlowGraph(`
       schema MyEntity
         text: Text

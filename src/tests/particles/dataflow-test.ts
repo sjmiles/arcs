@@ -23,8 +23,9 @@ describe('Dataflow example recipes', () => {
 
   for (const filename of filenames) {
     it(`passes dataflow analysis: ${filename}`, async () => {
-      const memoryProvider = new TestVolatileMemoryProvider();
-      RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
       const manifest = await Manifest.load(filename, loader, {memoryProvider});
       for (const recipe of manifest.recipes) {
         recipe.normalize();

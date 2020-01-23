@@ -26,7 +26,7 @@ describe('Arc integration', () => {
         }
       });`
     });
-    const memoryProvider = new TestVolatileMemoryProvider();
+    const memoryProvider = null; // = new TestVolatileMemoryProvider();
     const manifest = await Manifest.parse(`
       schema Thing
         name: Text
@@ -45,7 +45,7 @@ describe('Arc integration', () => {
     `, {memoryProvider});
     const runtime = new Runtime({
         loader, composerClass: FakeSlotComposer, context: manifest, memoryProvider});
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    //RamDiskStorageDriverProvider.register(memoryProvider);
 
     const arc = runtime.newArc('demo', storageKeyPrefixForTest());
     assert.lengthOf(arc._stores, 0);

@@ -26,8 +26,9 @@ describe.skip('multi-slot test', () => {
   async function init() {
     const loader = new Loader();
 
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
 
     const manifest = './src/tests/particles/artifacts/multi-slot-test.manifest';
     const context = await Manifest.load(manifest, loader, {memoryProvider});

@@ -17,8 +17,9 @@ import {TestVolatileMemoryProvider} from '../../../runtime/testing/test-volatile
 
 /** Constructs a FlowGraph from the recipe in the given manifest. */
 export async function buildFlowGraph(manifestContent: string): Promise<FlowGraph> {
-  const memoryProvider = new TestVolatileMemoryProvider();
-  const manifest = await Manifest.parse(manifestContent, {memoryProvider});
+  //const memoryProvider = new TestVolatileMemoryProvider();
+  //const manifest = await Manifest.parse(manifestContent, {memoryProvider});
+  const manifest = await Manifest.parse(manifestContent);
   assert.lengthOf(manifest.recipes, 1);
   const recipe = manifest.recipes[0];
   assert(recipe.normalize(), 'Failed to normalize recipe.');

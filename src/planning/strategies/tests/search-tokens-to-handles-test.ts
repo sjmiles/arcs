@@ -20,8 +20,8 @@ import {Flags} from '../../../runtime/flags.js';
 describe('SearchTokensToHandles', () => {
   let memoryProvider;
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
   it('finds local handle by tags', async () => {
     const typeString = Flags.useNewStorageStack ? '![Thing]' : 'Thing';

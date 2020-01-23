@@ -72,13 +72,14 @@ async function setup(storageKeyPrefix: string | ((arcId: ArcId) => StorageKey)) 
 
 describe('Arc new storage', () => {
   it('preserves data when round-tripping through serialization', Flags.withNewStorageStack(async () => {
-    DriverFactory.clearRegistrationsForTesting();
+    //DriverFactory.clearRegistrationsForTesting();
     // TODO(shans): deserialization currently uses a RamDisk store to deserialize into because we don't differentiate
     // between parsing a manifest for public consumption (e.g. with RamDisk resources in it) and parsing a serialized
     // arc (with an @activeRecipe). We'll fix this by adding a 'private' keyword to store serializations which will
     // be used when serializing arcs. Once that is working then the following registration should be removed.
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    //const memoryProvider = new TestVolatileMemoryProvider();
+    //RamDiskStorageDriverProvider.register(memoryProvider);
     const loader = new StubLoader({
       manifest: `
         schema Data
@@ -271,8 +272,9 @@ describe('Arc', () => {
   it('instantiates recipes only if fate is correct', async () => {
     const data = Flags.useNewStorageStack ? '{"root": {"values": {}, "version": {}}, "locations": {}}' : '[]';
     const type = Flags.useNewStorageStack ? '![Thing]' : 'Thing';
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    //const memoryProvider = new TestVolatileMemoryProvider();
+    //RamDiskStorageDriverProvider.register(memoryProvider);
 
     const manifest = await Manifest.parse(`
       schema Thing

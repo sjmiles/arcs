@@ -31,8 +31,9 @@ import {DriverFactory} from '../../runtime/storageNG/drivers/driver-factory.js';
 
 async function planFromManifest(manifest, {arcFactory, testSteps}: {arcFactory?, testSteps?} = {}) {
   const loader = new Loader();
-  const memoryProvider = new TestVolatileMemoryProvider();
-  RamDiskStorageDriverProvider.register(memoryProvider);
+  const memoryProvider = null;
+  // const memoryProvider = new TestVolatileMemoryProvider();
+  // RamDiskStorageDriverProvider.register(memoryProvider);
   if (typeof manifest === 'string') {
     const fileName = './test.manifest';
     manifest = await Manifest.parse(manifest, {loader, fileName, memoryProvider});
@@ -582,8 +583,8 @@ describe('Type variable resolution', () => {
   let memoryProvider;
 
   beforeEach(() => {
-    memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    // memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
   });
 
   afterEach(() => {

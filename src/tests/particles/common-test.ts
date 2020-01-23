@@ -97,8 +97,9 @@ describe('common particles test', () => {
       this.skip();
     }
     const loader = new StubLoader({});
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
     const context =  await Manifest.load('./src/tests/particles/artifacts/copy-collection-test.recipes', loader, {memoryProvider});
     const runtime = new Runtime({
         loader, composerClass: FakeSlotComposer, context, memoryProvider});

@@ -51,6 +51,7 @@ export class StorageKeyParser {
 
   static addParser(protocol: string, parser: Parser) {
     if (this.parsers.has(protocol)) {
+      debugger;
       throw new Error(`Parser for storage key protocol ${protocol} already exists.`);
     }
     this.parsers.set(protocol, parser);

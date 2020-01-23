@@ -21,12 +21,12 @@ describe('StorageKey', () => {
 
   beforeEach(() => {
     const runtime = Runtime.getRuntime();
-    RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
-    FirebaseStorageDriverProvider.register(runtime.getCacheService());
+    //RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
+    //FirebaseStorageDriverProvider.register(runtime.getCacheService());
   });
 
   afterEach(() => {
-    DriverFactory.clearRegistrationsForTesting();
+    //DriverFactory.clearRegistrationsForTesting();
   });
 
   it('can round-trip VolatileStorageKey', () => {

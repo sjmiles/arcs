@@ -113,8 +113,9 @@ recipe
   // out. If any individual expectation is skipped, the test complains because
   // it receives an expectation it doesn't expect.
   it.skip('initialize recipe and render hosted slots', async () => {
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
 
     const loader = new Loader();
 
@@ -185,8 +186,9 @@ recipe
   });
 
   it('renders inner slots in transformations without intercepting', async () => {
-    const memoryProvider = new TestVolatileMemoryProvider();
-    RamDiskStorageDriverProvider.register(memoryProvider);
+    const memoryProvider = null;
+    // const memoryProvider = new TestVolatileMemoryProvider();
+    // RamDiskStorageDriverProvider.register(memoryProvider);
 
     const loader = new Loader(null, {
         'TransformationParticle.js': `defineParticle(({UiParticle}) => {
