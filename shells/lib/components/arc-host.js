@@ -8,10 +8,10 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
-import {ArcType} from '../../../build/runtime/type.js';
 import {logsFactory} from '../../../build/platform/logs-factory.js';
 import {Runtime} from '../../../build/runtime/runtime.js';
-import {SyntheticStores} from '../synthetic-stores.js';
+//import {SyntheticStores} from '../synthetic-stores.js';
+//import {ArcType} from '../../../build/runtime/type.js';
 import {devtoolsArcInspectorFactory} from '../../../build/devtools-connector/devtools-arc-inspector.js';
 
 const {log, warn, error} = logsFactory('ArcHost', '#cade57');
@@ -112,22 +112,40 @@ export class ArcHost {
     }
     await this.persistSerialization(arc);
   }
-  async fetchSerialization(storage, arcid) {
-    const key = `${storage}/${arcid}/arc-info`;
-    const store = await SyntheticStores.providerFactory.connect('id', new ArcType(), key);
-    if (store) {
-      log('loading stored serialization');
-      const info = await store.get();
-      return info && info.serialization;
-    }
-  }
   async persistSerialization(arc) {
     const {id, storageKey} = arc;
     if (!storageKey.includes('volatile')) {
-      log(`compiling serialization for [${id}]...`);
+      //log(`compiling serialization for [${id}]...`);
       const serialization = await arc.serialize();
-      log(`persisting serialization to [${id}/serialization]...`);
-      await arc.persistSerialization(serialization);
+      //log(`persisting serialization to [${id}]...`);
+      //await arc.persistSerialization(serialization);
+      const arcid = id.idTreeAsString();
+      log(`persisting serialization to [${arcid}]...`);
+      localStorage.setItem(`ARC:${arcid}`, serialization);
     }
   }
+  async fetchSerialization(storage, arcid) {
+    const serialization = localStorage.getItem(`ARC:${arcid}`);
+    log(`fetched serialization for [${arcid}]:\n`, serialization);
+    return serialization;
+    // const key = `${storage}/${arcid}/arc-info`;
+    // const store = await SyntheticStores.providerFactory.connect('id', new ArcType(), key);
+    // if (store) {
+    //   log('loading stored serialization');
+    //   const info = await store.get();
+    //   return info && info.serialization;
+    // }
+  }
+  static listArcs() {
+    const result = [];
+    for (let n=0; n<localStorage.length; n++) {
+      const key = localStorage.key(n);
+      if (key.slice(0, 4) === 'ARC:') {
+        result.push({id: key.slice(4), serialization: localStorage.getItem(key)});
+      }
+    }
+    return result;
+  }
 }
+
+window.listArcs = ArcHost.listArcs;
