@@ -119,7 +119,7 @@ const smokeTest = async (bus) => {
   };
   //
   const stressTest = () => {
-    const iterations = 5e2;
+    const iterations = 40;
     let stop = false;
     window.onclick = () => stop = true;
     //console.profile();

@@ -233,7 +233,7 @@ export class Runtime {
     //   const arc = this.newArc(name, storageKeyPrefix, options);
     //   //const arc = {dispose: {}};
     //   // TODO: Support deserializing serialized arcs.
-    //   this.arcById.set(name, arc as unknown as Arc);
+    this.arcById.set(name, arc as unknown as Arc);
     // }
     // return this.arcById.get(name);
 
@@ -241,9 +241,9 @@ export class Runtime {
   }
 
   stop(name: string) {
-    // assert(this.arcById.has(name), `Cannot stop nonexistent arc ${name}`);
-    // this.arcById.get(name).dispose();
-    // this.arcById.delete(name);
+    assert(this.arcById.has(name), `Cannot dispose nonexistent arc ${name}`);
+    this.arcById.get(name).dispose();
+    this.arcById.delete(name);
   }
 
   findArcByParticleId(particleId: string): Arc {
@@ -290,7 +290,7 @@ export class Runtime {
     // we could eliminate it if the Manifest object takes care of this.
     const id = `in-memory-${Math.floor((Math.random()+1)*1e6)}.manifest`;
     // TODO(sjmiles): this is a virtual manifest, the fileName is invented
-    const opts = {id, fileName: `./${id}`, loader, ...options};
+    const opts = {id, fileName: `./${id}`, loader, memoryProvider: this.memoryProvider, ...options};
     return Manifest.parse(content, opts);
   }
 

@@ -149,6 +149,7 @@ export class Arc implements ArcInterface {
 
     //this.pec =
     //new ParticleExecutionHost({slotComposer, arc: this, ports});
+
     // if (Flags.useNewStorageStack) {
     //   if (typeof storageKey === 'string') {
     //     throw new Error(`Can't use string storage keys with new storage stack. Provide a StorageKey subclass to Arc constructor.`);

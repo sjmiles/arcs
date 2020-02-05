@@ -32,6 +32,7 @@ export const runArc = async (msg, bus, runtime, defaultStorageKeyPrefix) => {
   //const pecFactories = [runtime.pecFactory, portIndustry(bus, pecId)];
   const pecFactories = [runtime.pecFactory];
   //const pecFactories = [portIndustry(bus, pecId)];
+
   //const arc = null;
   const arc = runtime.runArc(arcId, storageKeyPrefix || defaultStorageKeyPrefix, {
     fileName: './serialized.manifest',
