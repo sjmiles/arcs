@@ -119,7 +119,13 @@ export class Arc implements ArcInterface {
   readonly volatileMemory = new VolatileMemory();
   private readonly volatileStorageDriverProvider: VolatileStorageDriverProvider;
 
-  constructor({id, context, pecFactories, slotComposer, loader, storageKey, storageProviderFactory, speculative, innerArc, stub, storageKeyFactory, inspectorFactory} : ArcOptions) {
+  constructor(options: ArcOptions) {
+    const {
+      id, context, pecFactories, slotComposer, loader,
+      storageKey, storageProviderFactory, storageKeyFactory,
+      speculative, innerArc, stub, inspectorFactory
+    } = options;
+
     this._context = context;
 
     // TODO: pecFactories should not be optional. update all callers and fix here.
@@ -138,7 +144,9 @@ export class Arc implements ArcInterface {
     this.inspectorFactory = inspectorFactory;
     //this.inspector = inspectorFactory && inspectorFactory.create(this);
     this.storageKey = storageKey;
+
     const ports = this.pecFactories.map(f => f(this.generateID(), this.idGenerator));
+
     //this.pec =
     //new ParticleExecutionHost({slotComposer, arc: this, ports});
     // if (Flags.useNewStorageStack) {

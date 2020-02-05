@@ -119,9 +119,9 @@ const smokeTest = async (bus) => {
   };
   //
   const stressTest = () => {
-    const iterations = 5e1;
+    const iterations = 5e2;
     let stop = false;
-    window.onclick = () => {stop = true};
+    window.onclick = () => stop = true;
     //console.profile();
     // async `runArc` commands are performed serially
     let count = 0;

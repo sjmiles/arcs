@@ -200,7 +200,7 @@ export class Runtime {
     // }
     //const slotComposer = null;
     const storageKeyFactory = null;
-    let storageKey : string | StorageKey = '';
+    const storageKey : string | StorageKey = null;
 
     const arc = new Arc({id, storageKey, storageKeyFactory, loader, slotComposer, context, ...options});
     //const arc = {dispose: {}} as unknown as Arc;
@@ -219,7 +219,7 @@ export class Runtime {
   runArc(name: string, storageKeyPrefix: string | ((arcId: ArcId) => StorageKey), options?: RuntimeArcOptions): Arc {
     //const arc = {dispose: {}} as unknown as Arc;
 
-    const arc = this.newArc(name, storageKeyPrefix, options)
+    const arc = this.newArc(name, storageKeyPrefix, options);
 
     // let arc = this.arcById.get(name);
     // if (!arc) {
