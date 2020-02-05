@@ -119,21 +119,25 @@ const smokeTest = async (bus) => {
   };
   //
   const stressTest = () => {
-    console.profile();
+    const iterations = 5e1;
+    let stop = false;
+    window.onclick = () => {stop = true};
+    //console.profile();
     // async `runArc` commands are performed serially
     let count = 0;
     const spawn = () => {
       if (count > 0) {
-        echo(count);
         send({message: 'stopArc', arcId: `pipe-stress-test-${count-1}`});
       }
-      if (count++ < 1) {
+      if (count < iterations && !stop) {
         send({message: 'runArc', arcId: `pipe-stress-test-${count}`, Xrecipe: 'Notification'});
         setTimeout(spawn, 1);
         //document.body.parentElement.scrollTop = 9e5;
       } else {
-        console.profileEnd();
+        //console.profileEnd();
       }
+      count++;
+      echo(count);
     };
     spawn();
   };

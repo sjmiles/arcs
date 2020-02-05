@@ -35,16 +35,15 @@ export class SlotComposer {
    * - containerKind: the type of container wrapping each slot-context's container  (for example, div).
    */
   constructor(options?: SlotComposerOptions) {
-    const opts = {
-      containers: {'root': 'root-context'},
-      ...options
-    };
-
-    // See SlotUtils::findAllSlotCandidates
-    Object.keys(opts.containers).forEach(slotName => {
-      const context = this.createContextForContainer(slotName);
-      this._contexts.push(context);
-    });
+    // const opts = {
+    //   containers: {'root': 'root-context'},
+    //   ...options
+    // };
+    // // See SlotUtils::findAllSlotCandidates
+    // Object.keys(opts.containers).forEach(slotName => {
+    //   const context = this.createContextForContainer(slotName);
+    //   this._contexts.push(context);
+    // });
   }
 
   createContextForContainer(name) {

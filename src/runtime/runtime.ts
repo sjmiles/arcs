@@ -12,7 +12,7 @@ import {assert} from '../platform/assert-web.js';
 import {Description} from './description.js';
 import {Manifest} from './manifest.js';
 import {Arc} from './arc.js';
-import {Capabilities} from './capabilities.js';
+//import {Capabilities} from './capabilities.js';
 import {RuntimeCacheService} from './runtime-cache.js';
 import {IdGenerator, ArcId} from './id.js';
 import {PecFactory} from './particle-execution-context.js';
@@ -23,7 +23,8 @@ import {RamDiskStorageDriverProvider} from './storageNG/drivers/ramdisk.js';
 import {SimpleVolatileMemoryProvider, VolatileMemoryProvider, VolatileStorageKey} from './storageNG/drivers/volatile.js';
 import {VolatileStorage} from './storage/volatile-storage.js';
 import {StorageKey} from './storageNG/storage-key.js';
-import {StorageKeyFactory, StorageKeyCreator, StorageKeyCreatorsMap} from './storageNG/storage-key-factory.js';
+import {StorageKeyFactory, StorageKeyCreatorsMap} from './storageNG/storage-key-factory.js';
+//import {StorageKeyCreator} from './storageNG/storage-key-factory.js';
 import {Recipe} from './recipe/recipe.js';
 import {RecipeResolver} from './recipe/recipe-resolver.js';
 import {Loader} from '../platform/loader.js';
@@ -185,17 +186,26 @@ export class Runtime {
   newArc(name: string, storageKeyPrefix: string | ((arcId: ArcId) => StorageKey) | null, options?: RuntimeArcOptions): Arc {
     const {loader, context} = this;
     const id = IdGenerator.newSession().newArcId(name);
-    const slotComposer = this.composerClass ? new this.composerClass() : null;
-    const storageKeyFactory = new StorageKeyFactory({arcId: id}, options ? options.storageKeyCreators : undefined);
-    let storageKey : string | StorageKey;
-    if (typeof storageKeyPrefix === 'string') {
-      storageKey = `${storageKeyPrefix}${id.toString()}`;
-    } else if (storageKeyPrefix == null) {
-      storageKey = new VolatileStorageKey(id, '');
-    } else {
-      storageKey = storageKeyPrefix(id);
-    }
-    return new Arc({id, storageKey, storageKeyFactory, loader, slotComposer, context, ...options});
+    //const slotComposer = this.composerClass ? new this.composerClass() : null;
+    const slotComposer = new SlotComposer();
+    //const slotComposer = null;
+    // const storageKeyFactory = new StorageKeyFactory({arcId: id}, options ? options.storageKeyCreators : undefined);
+    // let storageKey : string | StorageKey;
+    // if (typeof storageKeyPrefix === 'string') {
+    //   storageKey = `${storageKeyPrefix}${id.toString()}`;
+    // } else if (storageKeyPrefix == null) {
+    //   storageKey = new VolatileStorageKey(id, '');
+    // } else {
+    //   storageKey = storageKeyPrefix(id);
+    // }
+    //const slotComposer = null;
+    const storageKeyFactory = null;
+    let storageKey : string | StorageKey = '';
+
+    const arc = new Arc({id, storageKey, storageKeyFactory, loader, slotComposer, context, ...options});
+    //const arc = {dispose: {}} as unknown as Arc;
+
+    return arc;
   }
 
   // Stuff the shell needs
@@ -207,17 +217,33 @@ export class Runtime {
    * (3) a newly created arc
    */
   runArc(name: string, storageKeyPrefix: string | ((arcId: ArcId) => StorageKey), options?: RuntimeArcOptions): Arc {
-    if (!this.arcById.has(name)) {
-      // TODO: Support deserializing serialized arcs.
-      this.arcById.set(name, this.newArc(name, storageKeyPrefix, options));
-    }
-    return this.arcById.get(name);
+    //const arc = {dispose: {}} as unknown as Arc;
+
+    const arc = this.newArc(name, storageKeyPrefix, options)
+
+    // let arc = this.arcById.get(name);
+    // if (!arc) {
+    //   // TODO: Support deserializing serialized arcs.
+    //   arc = this.newArc(name, storageKeyPrefix, options);
+    //   arc = {dispose: {}} as unknown as Arc;
+    //   this.arcById.set(name, arc);
+    // }
+
+    // if (!this.arcById.has(name)) {
+    //   const arc = this.newArc(name, storageKeyPrefix, options);
+    //   //const arc = {dispose: {}};
+    //   // TODO: Support deserializing serialized arcs.
+    //   this.arcById.set(name, arc as unknown as Arc);
+    // }
+    // return this.arcById.get(name);
+
+    return arc;
   }
 
   stop(name: string) {
-    assert(this.arcById.has(name), `Cannot stop nonexistent arc ${name}`);
-    this.arcById.get(name).dispose();
-    this.arcById.delete(name);
+    // assert(this.arcById.has(name), `Cannot stop nonexistent arc ${name}`);
+    // this.arcById.get(name).dispose();
+    // this.arcById.delete(name);
   }
 
   findArcByParticleId(particleId: string): Arc {

@@ -16,10 +16,10 @@ class PecPort extends MessagePort {
     this.pecId = pecId;
     this.sessionId = idGenerator.currentSessionIdForTesting;
     this.bus = bus;
-    console.warn('+ PecPort::created');
+    //console.warn('+ PecPort::created');
   }
   close() {
-    console.warn('---- PecPort::close');
+    //console.warn('---- PecPort::close');
     pecPorts[this.id] = null;
   }
   postMessage(msg) {

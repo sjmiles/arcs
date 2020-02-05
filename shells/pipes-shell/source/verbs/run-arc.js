@@ -29,24 +29,37 @@ export const runArc = async (msg, bus, runtime, defaultStorageKeyPrefix) => {
     warn(`found no recipes matching [${recipe}]`);
     return null;
   }
+  //const pecFactories = [runtime.pecFactory, portIndustry(bus, pecId)];
+  const pecFactories = [runtime.pecFactory];
+  //const pecFactories = [portIndustry(bus, pecId)];
+  //const arc = null;
   const arc = runtime.runArc(arcId, storageKeyPrefix || defaultStorageKeyPrefix, {
     fileName: './serialized.manifest',
-    pecFactories: [runtime.pecFactory, portIndustry(bus, pecId)],
+    pecFactories,
     loader: runtime.loader,
     inspectorFactory: devtoolsArcInspectorFactory
   });
-  arc.pec.slotComposer.slotObserver = {
-    observe: (content, arc) => {
-      delete content.particle;
-      bus.send({message: 'output', data: content});
-    },
-    dispose: () => null
-  };
+  // arc.pec.slotComposer.slotObserver = {
+  //   observe: (content, arc) => {
+  //     delete content.particle;
+  //     bus.send({message: 'output', data: content});
+  //   },
+  //   dispose: () => null
+  // };
   // optionally instantiate recipe
-  if (action && await instantiateRecipe(arc, action, particles || [])) {
-    log(`successfully instantiated ${recipe} in ${arc.id}`);
-  }
+  // if (action && await instantiateRecipe(arc, action, particles || [])) {
+  //   log(`successfully instantiated ${recipe} in ${arc.id}`);
+  // }
   return arc;
+};
+
+export const stopArc = async ({arcId}, runtime) => {
+  arcId && runtime.stop(arcId);
+};
+
+export const uiEvent = async ({particleId, eventlet}, runtime) => {
+  const arc = runtime.findArcByParticleId(particleId);
+  arc.pec.slotComposer.sendEvent(particleId, eventlet);
 };
 
 const instantiateRecipe = async (arc, recipe, particles) => {
@@ -119,13 +132,4 @@ const updateParticleInPlan = (plan, particleId, particleName, providedSlotId) =>
     }
   }
   return plan;
-};
-
-export const stopArc = async ({arcId}, runtime) => {
-  runtime.stop(arcId);
-};
-
-export const uiEvent = async ({particleId, eventlet}, runtime) => {
-  const arc = runtime.findArcByParticleId(particleId);
-  arc.pec.slotComposer.sendEvent(particleId, eventlet);
 };

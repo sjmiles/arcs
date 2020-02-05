@@ -20,9 +20,10 @@ export const Bus = class {
   }
   receive(msg) {
     const body = this.parse(msg);
-    const tid = this.assignTransactionId();
+    const tid = 0; //this.assignTransactionId();
     log(`[${tid}] :: received [${JSON.stringify(body, null, '  ')}]`);
-    this.mapAsyncValue(tid, async () => this.dispatcher.dispatch(body, tid, this));
+    //this.mapAsyncValue(tid, async () => this.dispatcher.dispatch(body, tid, this));
+    this.dispatcher.dispatch(body, tid, this);
     return tid;
   }
   send(msg) {

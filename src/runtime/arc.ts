@@ -121,11 +121,12 @@ export class Arc implements ArcInterface {
 
   constructor({id, context, pecFactories, slotComposer, loader, storageKey, storageProviderFactory, speculative, innerArc, stub, storageKeyFactory, inspectorFactory} : ArcOptions) {
     this._context = context;
+
     // TODO: pecFactories should not be optional. update all callers and fix here.
     this.pecFactories = pecFactories && pecFactories.length > 0 ? pecFactories.slice() : [FakePecFactory(loader).bind(null)];
 
     // TODO(sjmiles): FIXME: currently some UiBrokers need to recover arc from composer in order to forward events
-    if (slotComposer && !slotComposer['arc']) {
+    if (!innerArc && slotComposer && !slotComposer['arc']) {
       slotComposer['arc'] = this;
     }
 
@@ -135,22 +136,23 @@ export class Arc implements ArcInterface {
     this.isStub = !!stub;
     this._loader = loader;
     this.inspectorFactory = inspectorFactory;
-    this.inspector = inspectorFactory && inspectorFactory.create(this);
+    //this.inspector = inspectorFactory && inspectorFactory.create(this);
     this.storageKey = storageKey;
     const ports = this.pecFactories.map(f => f(this.generateID(), this.idGenerator));
-    this.pec = new ParticleExecutionHost({slotComposer, arc: this, ports});
-    if (Flags.useNewStorageStack) {
-      if (typeof storageKey === 'string') {
-        throw new Error(`Can't use string storage keys with new storage stack. Provide a StorageKey subclass to Arc constructor.`);
-      }
+    //this.pec =
+    //new ParticleExecutionHost({slotComposer, arc: this, ports});
+    // if (Flags.useNewStorageStack) {
+    //   if (typeof storageKey === 'string') {
+    //     throw new Error(`Can't use string storage keys with new storage stack. Provide a StorageKey subclass to Arc constructor.`);
+    //   }
 
-      this.volatileStorageDriverProvider = new VolatileStorageDriverProvider(this);
-      DriverFactory.register(this.volatileStorageDriverProvider);
-    } else {
-      this.storageProviderFactory = storageProviderFactory ||
-          new StorageProviderFactory(this.id, new ManifestHandleRetriever());
-    }
-    this.storageKeyFactory = storageKeyFactory || new StorageKeyFactory({arcId: this.id});
+    //   this.volatileStorageDriverProvider = new VolatileStorageDriverProvider(this);
+    //   DriverFactory.register(this.volatileStorageDriverProvider);
+    // } else {
+    //   this.storageProviderFactory = storageProviderFactory ||
+    //       new StorageProviderFactory(this.id, new ManifestHandleRetriever());
+    // }
+    // this.storageKeyFactory = storageKeyFactory || new StorageKeyFactory({arcId: this.id});
   }
 
   get loader(): Loader {
@@ -172,14 +174,15 @@ export class Arc implements ArcInterface {
       innerArc.dispose();
     }
     // TODO: disconnect all associated store event handlers
-    this.pec.stop();
-    this.pec.close();
-    // Slot contexts and consumers from inner and outer arcs can be interwoven. Slot composer
-    // is therefore disposed in its entirety with an outer Arc's disposal.
-    if (!this.isInnerArc && this.pec.slotComposer) {
-      this.pec.slotComposer.dispose();
+    if (this.pec) {
+      this.pec.stop();
+      this.pec.close();
+      // Slot contexts and consumers from inner and outer arcs can be interwoven. Slot composer
+      // is therefore disposed in its entirety with an outer Arc's disposal.
+      if (!this.isInnerArc && this.pec.slotComposer) {
+        this.pec.slotComposer.dispose();
+      }
     }
-
     DriverFactory.unregister(this.volatileStorageDriverProvider);
   }
 

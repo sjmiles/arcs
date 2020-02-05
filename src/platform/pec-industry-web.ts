@@ -10,7 +10,7 @@
 
 import {PecFactory} from '../runtime/particle-execution-context.js';
 import {Id, IdGenerator} from '../runtime/id.js';
-import {workerPool} from '../runtime/worker-pool.js';
+//import {workerPool} from '../runtime/worker-pool.js';
 
 const WORKER_PATH = `https://$build/worker.js`;
 
@@ -30,41 +30,41 @@ export const pecIndustry = (loader): PecFactory => {
     loader.provisionObjectUrl(workerUrl).then((url: string) => workerBlobUrl = url);
   }
   // delegate worker and channel creation api to the worker pool factory
-  workerPool.apis = {
-    create: () => ({
-      worker: new Worker(workerBlobUrl || workerUrl),
-      channel: new MessageChannel(),
-      usage: 0,
-    })
-  };
+  // workerPool.apis = {
+  //   create: () => ({
+  //     worker: new Worker(workerBlobUrl || workerUrl),
+  //     channel: new MessageChannel(),
+  //     usage: 0,
+  //   })
+  // };
   // spawn workers ahead of time at runtime initialization
   // effective only when the use-worker-pool url parameter is supplied
-  workerPool.shrinkOrGrow();
+  // workerPool.shrinkOrGrow();
   // return a pecfactory
   const factory = (id: Id, idGenerator?: IdGenerator) => {
     if (!workerBlobUrl && !useCache) {
       console.warn('workerBlob not available, falling back to network URL');
     }
-    const poolEntry = workerPool.resume();
+    const poolEntry = null; //workerPool.resume();
     const worker =
         poolEntry ? poolEntry.worker : new Worker(workerBlobUrl || workerUrl);
     const channel =
         poolEntry ? poolEntry.channel : new MessageChannel();
     // Should emplace if the worker pool management is ON and
     // a new worker and its messaging channel are created.
-    if (workerPool.active && !poolEntry) {
-      workerPool.emplace(worker, channel);
-    }
+    // if (workerPool.active && !poolEntry) {
+    //   workerPool.emplace(worker, channel);
+    // }
     worker.postMessage({
       id: `${id}:inner`,
       base: remap,
       logLevel: window['logLevel'],
       traceChannel: systemTraceChannel,
-      inWorkerPool: workerPool.exist(channel.port2),
+      inWorkerPool: false //workerPool.exist(channel.port2),
     }, [channel.port1]);
     // shrink or grow workers at run-time overlapping with new PEC execution
     // effective only when the use-worker-pool url parameter is supplied
-    workerPool.shrinkOrGrow();
+    //workerPool.shrinkOrGrow();
     return channel.port2;
   };
   // TODO(sjmiles): PecFactory type is defined against custom `MessageChannel` and `MessagePort` objects, not the

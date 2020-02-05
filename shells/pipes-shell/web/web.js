@@ -55,7 +55,6 @@ const DeviceSupport = async () => {
     let waits = Math.round(deviceTimeout / delay);
     const wait = () => {
       if (window.DeviceClient) {
-        console.log(window.DeviceClient);
         resolve(window.DeviceClient);
       } else {
         if (waits-- === 0) {
