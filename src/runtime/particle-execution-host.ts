@@ -56,12 +56,14 @@ export class ParticleExecutionHost {
   public readonly particles: Particle[] = [];
 
   constructor({slotComposer, arc, ports}: ParticleExecutionHostOptions) {
-    this.close = () => {
-      this._apiPorts.forEach(apiPort => apiPort.close());
-    };
     this.arc = arc;
     this.slotComposer = slotComposer;
+    console.log(`PEH: received ${ports.length} port(s)`);
     this._apiPorts = ports.map(port => new PECOuterPortImpl(port, arc));
+    this.close = () => {
+      console.log(`PEH: closing ${this._apiPorts.length} port(s)`);
+      this._apiPorts.forEach(apiPort => apiPort.close());
+    };
   }
 
   private choosePortForParticle(particle: Particle): PECOuterPort {

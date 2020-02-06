@@ -343,7 +343,7 @@ export class Runtime {
       slotComposer: composer,
       pecFactories: [this.pecFactory, ...(portFactories || [])],
       loader: this.loader,
-      inspectorFactory,
+      inspectorFactory
     };
     return serialization ? Arc.deserialize(params) : new Arc(params);
   }

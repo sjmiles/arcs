@@ -266,6 +266,7 @@ export class APIPort {
       // is closed.
       workerPool.suspend(this._port);
     }
+    console.log('APIPort::closing MessagePort')
     this._port.close();
   }
 

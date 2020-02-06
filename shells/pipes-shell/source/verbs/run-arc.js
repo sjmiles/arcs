@@ -38,7 +38,7 @@ export const runArc = async (msg, bus, runtime, defaultStorageKeyPrefix) => {
     fileName: './serialized.manifest',
     pecFactories,
     loader: runtime.loader,
-    inspectorFactory: devtoolsArcInspectorFactory
+    //inspectorFactory: devtoolsArcInspectorFactory
   });
   // arc.pec.slotComposer.slotObserver = {
   //   observe: (content, arc) => {
