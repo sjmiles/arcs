@@ -155,6 +155,22 @@
     });
   }
 
+  function descapeString(parts: [string[], string, string][], tail: string[]): string {
+    const converted = parts.map(([text, _slash, char]) => {
+      switch (char) {
+        case 't': char = '\t'; break;
+        case 'n': char = '\n'; break;
+        case 'b': char = '\b'; break;
+        case 'r': char = '\r'; break;
+        case '\\': char = '\\'; break;
+        case '"': char = '"'; break;
+        case "'": char = "'"; break;
+      }
+      return text.join('') + char;
+    });
+    return converted.join('') + tail.join('');
+  }
+
   // Expected usage to parse a list of bracket-enclosed Things:
   // '[' multiLineSpace parts:(Thing whiteSpace? ',' multiLineSpace)* end:Thing? multiLineSpace ']'
   function combineMultiLine<T>(parts: [T, ...any[]][], end: T | null): T[] {
@@ -604,7 +620,7 @@ ClaimIsTag
   }
 
 ClaimDerivesFrom
-  = 'derives from' whiteSpace target:dottedFields
+  = 'derives' whiteSpace 'from' whiteSpace target:dottedFields
   {
     const targetParts = target.split('.');
     const handle = targetParts[0];
@@ -2001,16 +2017,8 @@ PrimaryExpression
     if (isPaxelMode()) error('Query argument is only allowed in refinement expressions');
     return toAstNode<AstNode.QueryNode>({kind: 'query-argument-node', value});
   }
-  / "'" txt:("\\'"/[^'\n])* "'"
+  / value: QuotedString
   {
-    const value = txt.join('')
-      .replace('\\t', '\t')
-      .replace('\\b', '\b')
-      .replace('\\n', '\n')
-      .replace('\\r', '\r')
-      .replace('\\\'', '\'')
-      .replace('\\"', '"')
-      .replace('\\\\', '\\');
     return toAstNode<AstNode.TextNode>({kind: 'text-node', value});
   }
 
@@ -2221,21 +2229,14 @@ ReservedWord
   / 'external'
   ) ([^a-zA-Z0-9_] / !.)  // '!.' matches end-of-input
 {
-  expected(`identifier`);
+  error(`Expected an identifier (but found reserved word '${keyword}')`);
 }
 
-QuotedString "a 'quoted string'"
-  = "'" parts:( [^\\']* "\\" . )* end:[^']* "'"
-  {
-    parts = parts.map(([text, slash, char]) => {
-      switch (char) {
-        case 't': char = '\t'; break;
-        case 'n': char = '\n'; break;
-      }
-      return text.join('') + char;
-    });
-    return parts.join('') + end.join('');
- }
+QuotedString "a 'multiline quoted string'"
+  = ("'" parts:( [^\\']* "\\" . )* end:[^']* ("'" / . { expected('\' at the end of a quoted string'); })
+  { return descapeString(parts, end); })
+  / ('"' parts:( [^\\"]* "\\" . )* end:[^"]* ('"' / . { expected('\" at the end of a quoted string'); })
+  { return descapeString(parts, end); })
 
 // Helpers for creating curly brace blocks with comma or newline separated
 // items, optional whitespace, and optional trailing commas.
@@ -2249,10 +2250,16 @@ openBrace
 closeBrace
   = commaOrNewline? multiLineSpace '}'
 
-backquotedString "a `backquoted string`"
+backquotedString "a `backquoted string`" // Note: This may contain ${expressions}
   = '`' pattern:([^`]+) '`' { return pattern.join(''); }
 id "an identifier (e.g. 'id')"
-  = "'" id:[^'\n]+ ("'" / . { expected('\' at the end of an identifier'); }) { return id.join(''); }
+  = txt: QuotedString {
+      const newlineIndex = txt.indexOf('\n');
+      if (newlineIndex !== -1) {
+        error('Identifiers must be a single line (possibly missing a quote mark " or \')');
+      }
+      return txt;
+    }
 upperIdent "an uppercase identifier (e.g. Foo)"
   = !UpperReservedWord [A-Z][a-z0-9_]i* { return text(); }
 lowerIdent "a lowercase identifier (e.g. foo)"
@@ -2271,7 +2278,11 @@ simpleName "a name starting with a letter and containing letters, digits and und
 whiteSpace "one or more whitespace characters"
   = spaceChar+
 spaceChar "a 'plain' space (use whiteSpace instead)"
-  = ' ' / ("\u00A0" / "\t" / "\f" / "\r" / "\v") {expected('space');}
+  = blockComment / ' ' / ("\u00A0" / "\t" / "\f" / "\r" / "\v") {expected('space');}
+blockComment "a block comment /* */"
+  = '/*' blockCommentBody* ('*/' / !. {error('Unfinished block comment');})
+blockCommentBody
+  = blockComment / ((!'*/').)
 eolWhiteSpace "a group of new lines (and optionally comments)"
   = spaceChar* !.
   / spaceChar* '//' [^\n]* eolWhiteSpace

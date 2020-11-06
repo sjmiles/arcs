@@ -36,6 +36,7 @@ import {ActiveCollectionEntityStore, handleForStoreInfo, CollectionEntityType} f
 import {Ttl} from '../capabilities.js';
 import {StoreInfo} from '../storage/store-info.js';
 import {StorageServiceImpl} from '../storage/storage-service.js';
+import {deleteFieldRecursively} from '../../utils/lib-utils.js';
 
 function verifyPrimitiveType(field, type) {
   assert(field instanceof PrimitiveField, `Got ${field.constructor.name}, but expected a primitive field.`);
@@ -645,8 +646,11 @@ ${particleStr1}
           thing: reads Thing`
     });
     const manifest = await Manifest.load('./a', loader, {registry, memoryProvider});
-    assert.isTrue(manifest.recipes[0].particles[0].spec.equals(
-      (await registry['./b']).findParticleByName('ParticleB'))
+    const particleLit = (await registry['./b']).findParticleByName('ParticleB').toLiteral();
+    deleteFieldRecursively(particleLit, 'location');
+    assert.deepEqual(
+      manifest.recipes[0].particles[0].spec.toLiteral(),
+      particleLit
     );
   });
   it('can parse a schema extending a schema in another manifest', async () => {
@@ -773,6 +777,34 @@ ${particleStr1}
       schema Ordered
         index: Number [index >= 0]
       particle OrderPeople in 'OrderPeople.js'
+        orderedPeople: writes [Ordered Person {name, id, index}]`);
+      const verify = (manifest: Manifest) => {
+        const entity = manifest.particles[0].handleConnectionMap.get('orderedPeople').type['collectionType'];
+        assert.strictEqual(entity.tag, 'Entity');
+        // tslint:disable-next-line: no-any
+        const ref = (entity as any).getEntitySchema().refinement;
+        assert.isNull(ref);
+        // tslint:disable-next-line: no-any
+        const refIndex = (entity as any).getEntitySchema().fields['index'].refinement;
+        assert.exists(refIndex);
+        assert.strictEqual(refIndex.kind, 'refinement');
+        assert.isTrue(refIndex.expression instanceof BinaryExpression);
+        assert.strictEqual(refIndex.expression.operator.op, '>=');
+        const binaryExpression = refIndex.expression as BinaryExpression;
+        assert.strictEqual((binaryExpression.leftExpr as FieldNamePrimitive).value, 'index');
+        assert.strictEqual((binaryExpression.rightExpr as NumberPrimitive).value, 0);
+      };
+      verify(manifest);
+    }));
+    it('can construct manifest with particles using already defined schema (with refinements and double quotes)', Flags.withFieldRefinementsAllowed(async () => {
+      const manifest = await parseManifest(`
+      schema Person
+        name: Text
+        id: Text
+        age: Number [age > 0]
+      schema Ordered
+        index: Number [index >= 0]
+      particle OrderPeople in "OrderPeople.js"
         orderedPeople: writes [Ordered Person {name, id, index}]`);
       const verify = (manifest: Manifest) => {
         const entity = manifest.particles[0].handleConnectionMap.get('orderedPeople').type['collectionType'];
@@ -4265,7 +4297,67 @@ Only type variables may have '*' fields.
         assert.isDefined(result[1].fields.val);
       });
     });
-  });
+    it('handles out of order schemas declarations', async () => {
+      const manifest = await parseManifest(`
+        schema Baz
+          t: Text
+        schema Foo
+          bar: &Bar
+          baz: &Baz
+        schema Bar
+          n: Number
+      `);
+      const foo = manifest.schemas['Foo'];
+
+      const barReference = foo.fields['bar'].getEntityType().getEntitySchema();
+      assert.equal(barReference.fields['n'].getType(), 'Number');
+
+      const bazReference = foo.fields['baz'].getEntityType().getEntitySchema();
+      assert.equal(bazReference.fields['t'].getType(), 'Text');
+    });
+    it('catches unsupported recursive schemas declarations', Flags.withFlags({recursiveSchemasAllowed: false}, async () => {
+      assertThrowsAsync(async () => {
+      const manifest = await parseManifest(`
+        schema Baz
+          t: Text
+          bar: &Bar
+        schema Foo
+          bar: &Bar
+          baz: &Baz
+        schema Bar
+          n: Number
+          baz: &Baz
+      `);
+      const foo = manifest.schemas['Foo'];
+
+      const barReference = foo.fields['bar'].getEntityType().getEntitySchema();
+      assert.equal(barReference.fields['n'].getType(), 'Number');
+
+      const bazReference = foo.fields['baz'].getEntityType().getEntitySchema();
+      assert.equal(bazReference.fields['t'].getType(), 'Text');
+      });
+    }));
+    it('handles recursive schemas declarations', Flags.withFlags({recursiveSchemasAllowed: true}, async () => {
+      const manifest = await parseManifest(`
+        schema Baz
+          t: Text
+          bar: &Bar
+        schema Foo
+          bar: &Bar
+          baz: &Baz
+        schema Bar
+          n: Number
+          baz: &Baz
+      `);
+      const foo = manifest.schemas['Foo'];
+
+      const barReference = foo.fields['bar'].getEntityType().getEntitySchema();
+      assert.equal(barReference.fields['n'].getType(), 'Number');
+
+      const bazReference = foo.fields['baz'].getEntityType().getEntitySchema();
+      assert.equal(bazReference.fields['t'].getType(), 'Text');
+    }));
+});
   it('warns about using external schemas', async () => {
     const manifest = await parseManifest(`
 schema Thing

@@ -56,7 +56,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@ExperimentalCoroutinesApi
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class DatabaseImplTest {
   private lateinit var database: DatabaseImpl
@@ -1764,6 +1764,73 @@ class DatabaseImplTest {
   }
 
   @Test
+  // Regression test for b/170219293.
+  fun garbageCollection_cleans_inlineEntities_storageKeySubset() = runBlockingTest {
+    newSchema(
+      "inlineHash",
+      SchemaFields(
+        singletons = mapOf("text" to FieldType.Text),
+        collections = emptyMap()
+      )
+    )
+    val schema = newSchema(
+      "hash",
+      SchemaFields(
+        singletons = mapOf("inline" to FieldType.InlineEntity("inlineHash")),
+        collections = mapOf("inlines" to FieldType.InlineEntity("inlineHash"))
+      )
+    )
+    val inlineEntity1 = RawEntity(
+      "ie1",
+      singletons = mapOf("text" to "ie1".toReferencable())
+    )
+    val inlineEntity2 = RawEntity(
+      "ie2",
+      singletons = mapOf("text" to "ie2".toReferencable())
+    )
+    val entity1 = DatabaseData.Entity(
+      RawEntity(
+        "entity",
+        singletons = mapOf("inline" to inlineEntity1),
+        collections = mapOf("inlines" to setOf(inlineEntity2)),
+        creationTimestamp = 100
+      ),
+      schema,
+      FIRST_VERSION_NUMBER,
+      VERSION_MAP
+    )
+    val entity2 = DatabaseData.Entity(
+      RawEntity(
+        // Note: this ID (entity2) contains the first ID (entity).
+        "entity2",
+        singletons = mapOf("inline" to inlineEntity1),
+        collections = mapOf("inlines" to setOf(inlineEntity2)),
+        creationTimestamp = 100
+      ),
+      schema,
+      FIRST_VERSION_NUMBER,
+      VERSION_MAP
+    )
+    val entityKey = DummyStorageKey("backing/entity")
+    val entityKey2 = DummyStorageKey("backing/entity2")
+    database.insertOrUpdate(entityKey, entity1)
+    database.insertOrUpdate(entityKey2, entity2)
+    val collection = dbCollection(DummyStorageKey("backing"), schema, entity2)
+    database.insertOrUpdate(DummyStorageKey("collection"), collection)
+
+    // 2 top level entities, 4 inline entities (2 each), 1 collection.
+    assertTableIsSize("storage_keys", 7)
+
+    // Entity1 is not in the collection, entity2 is. So entity1 will be garbage-collected.
+    database.runGarbageCollection()
+    database.runGarbageCollection()
+
+    assertThat(database.getEntity(entityKey2, schema)).isEqualTo(entity2)
+    // Only one top level entity with its 2 inline entities, and the collection.
+    assertTableIsSize("storage_keys", 4)
+  }
+
+  @Test
   fun garbageCollection() = runBlockingTest {
     val schema = newSchema("hash")
     val backingKey = DummyStorageKey("backing")
@@ -2652,6 +2719,42 @@ class DatabaseImplTest {
   }
 
   @Test
+  fun removeLargeNumberOfEntities_respectSqliteParametersLimit() = runBlockingTest {
+    val schema = newSchema(
+      "hash",
+      SchemaFields(singletons = mapOf("num" to FieldType.Int), collections = mapOf())
+    )
+    val collectionKey = DummyStorageKey("collection")
+    val backingKey = DummyStorageKey("backing")
+    val references = mutableSetOf<ReferenceWithVersion>()
+    for (i in 1..1100) {
+      val id = "entity$i"
+      database.insertOrUpdate(
+        DummyStorageKey("backing/$id"),
+        RawEntity(id, mapOf("num" to i.toReferencable())).toDatabaseData(schema)
+      )
+      references.add(
+        ReferenceWithVersion(
+          Reference(id, backingKey, VersionMap("ref1" to i)),
+          VersionMap("actor" to i)
+        )
+      )
+    }
+    val collection = DatabaseData.Collection(
+      values = references,
+      schema = schema,
+      databaseVersion = FIRST_VERSION_NUMBER,
+      versionMap = VERSION_MAP
+    )
+    database.insertOrUpdate(collectionKey, collection)
+
+    database.removeAllEntities()
+
+    assertThat(database.getCollection(collectionKey, schema))
+      .isEqualTo(collection.copy(values = emptySet()))
+  }
+
+  @Test
   fun removeExpiredReference() = runBlockingTest {
     val schema = newSchema(
       "hash",
@@ -2861,6 +2964,63 @@ class DatabaseImplTest {
     database.removeEntitiesHardReferencing(foreignKey, "refId")
     assertThat(database.getEntity(entityKey, schema)).isEqualTo(entity.nulled())
     assertThat(database.getEntity(entity2Key, schema)).isEqualTo(entity2)
+  }
+
+  @Test
+  fun removeEntitiesReferencing_respectSqliteParametersLimit() = runBlockingTest {
+    newSchema("child")
+    newSchema(
+      "inlineHash",
+      SchemaFields(
+        singletons = mapOf("ref" to FieldType.EntityRef("child")),
+        collections = emptyMap()
+      )
+    )
+    val schema = newSchema(
+      "hash",
+      SchemaFields(
+        singletons = mapOf("inline" to FieldType.InlineEntity("inlineHash")),
+        collections = emptyMap()
+      )
+    )
+    val collectionKey = DummyStorageKey("collection")
+    val backingKey = DummyStorageKey("backing")
+    val foreignKey = DummyStorageKey("foreign")
+    val inlineEntity = RawEntity(
+      id = "ie",
+      singletons = mapOf(
+        "ref" to Reference(
+          id = "refId",
+          storageKey = foreignKey,
+          version = null,
+          isHardReference = true
+        )
+      )
+    )
+    val references = mutableSetOf<ReferenceWithVersion>()
+    for (i in 1..1100) {
+      val id = "entity$i"
+      val entity = RawEntity(id, mapOf("inline" to inlineEntity)).toDatabaseData(schema)
+      database.insertOrUpdate(DummyStorageKey("backing/$id"), entity)
+      references.add(
+        ReferenceWithVersion(
+          Reference(id, backingKey, VersionMap("ref1" to i)),
+          VersionMap("actor" to i)
+        )
+      )
+    }
+    val collection = DatabaseData.Collection(
+      values = references,
+      schema = schema,
+      databaseVersion = FIRST_VERSION_NUMBER,
+      versionMap = VERSION_MAP
+    )
+    database.insertOrUpdate(collectionKey, collection)
+
+    database.removeEntitiesHardReferencing(foreignKey, "refId")
+
+    assertThat(database.getCollection(collectionKey, schema))
+      .isEqualTo(collection.copy(values = setOf()))
   }
 
   @Test
