@@ -1,6 +1,7 @@
 load(
     "//third_party/java/arcs/build_defs:build_defs.bzl",
     "arcs_java_library",
+    "arcs_kt_library",
 )
 load("//third_party/java/arcs/flags:flags.bzl", "ARCS_BUILD_FLAGS")
 load(
@@ -10,12 +11,21 @@ load(
 
 licenses(["notice"])
 
+arcs_kt_library(
+    name = "flags",
+    srcs = glob(["*.kt"]),
+    visibility = ["//java/arcs:arcs-internal"],
+    exports = [":build_flags"],
+)
+
 # Default generated build flags, for use in Arcs libraries. This is marked
 # "neverlink", which means it is used when compiling libraries, but is not
 # linked into the final binary. Every Android binary must link in its own
 # generated BuildFlags class.
 #
 # Using a Java library instead of a Kotlin library so we can use neverlink.
+#
+# Code should prefer to dep on the :flags target instead, which re-exports this.
 arcs_java_library(
     name = "build_flags",
     srcs = [":build_flags_src"],
@@ -25,6 +35,8 @@ arcs_java_library(
 )
 
 # Generates a BuildFlags library that can be compiled and linked in unit tests.
+# Unit tests should prefer to dep on the testing subpackage instead, which
+# re-exports this.
 arcs_java_library(
     name = "unit_test_build_flags",
     testonly = True,
