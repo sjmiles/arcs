@@ -9,8 +9,7 @@
  */
 
 import {assert} from '../../../platform/chai-web.js';
-import {RamDiskStorageKey, RamDiskStorageDriverProvider} from '../drivers/ramdisk.js';
-import {DriverFactory} from '../drivers/driver-factory.js';
+import {RamDiskStorageKey} from '../drivers/ramdisk.js';
 import {Runtime} from '../../runtime.js';
 import {EntityType, Schema} from '../../../types/lib-types.js';
 import {ReferenceModeStorageKey} from '../reference-mode-storage-key.js';
@@ -25,12 +24,12 @@ import {StoreInfo} from '../store-info.js';
 describe('ReferenceModeStore Integration', async () => {
 
   afterEach(() => {
-    DriverFactory.clearRegistrationsForTesting();
+    Runtime.resetDrivers();
   });
 
   it('will store and retrieve entities through referenceModeStores (separate stores)', async () => {
     const runtime = new Runtime();
-    RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
+    //RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
     const storageKey = new ReferenceModeStorageKey(new RamDiskStorageKey('backing'), new RamDiskStorageKey('container'));
 
     const type = new EntityType(new Schema(['AnEntity'], {foo: 'Text'})).collectionOf();
@@ -38,9 +37,9 @@ describe('ReferenceModeStore Integration', async () => {
     // Use newHandle here rather than setting up a store inside the arc, as this ensures writeHandle and readHandle
     // are on top of different storage stacks.
     const writeHandle = await newHandle(new StoreInfo({storageKey, type, id: 'write-handle'}),
-        Runtime.newForNodeTesting().newArc('testWritesArc'));
+        new Runtime().newArc('testWritesArc'));
     const readHandle = await newHandle(new StoreInfo({storageKey, type, id: 'read-handle'}),
-        Runtime.newForNodeTesting().newArc('testReadArc'));
+        new Runtime().newArc('testReadArc'));
 
     readHandle.particle = new Particle();
     const returnPromise = new Promise((resolve, reject) => {
@@ -66,9 +65,9 @@ describe('ReferenceModeStore Integration', async () => {
 
   it('will store and retrieve entities through referenceModeStores (shared stores)', async () => {
     const runtime = new Runtime();
-    RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
+   //RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
     const storageKey = new ReferenceModeStorageKey(new RamDiskStorageKey('backing'), new RamDiskStorageKey('container'));
-    const arc = Runtime.newForNodeTesting().newArc('testArc');
+    const arc = new Runtime().newArc('testArc');
 
     const type = new EntityType(new Schema(['AnEntity'], {foo: 'Text'})).collectionOf();
 
@@ -103,9 +102,9 @@ describe('ReferenceModeStore Integration', async () => {
 
   it('will store and retrieve entities through referenceModeStores (shared proxies)', async () => {
     const runtime = new Runtime();
-    RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
+    //RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
     const storageKey = new ReferenceModeStorageKey(new RamDiskStorageKey('backing'), new RamDiskStorageKey('container'));
-    const arc = Runtime.newForNodeTesting().newArc('testArc');
+    const arc = new Runtime().newArc('testArc');
 
     const type = new EntityType(new Schema(['AnEntity'], {foo: 'Text'})).collectionOf();
 
@@ -141,7 +140,7 @@ describe('ReferenceModeStore Integration', async () => {
 
   it('will send an ordered list from one handle to another (separate store)', async () => {
     const runtime = new Runtime();
-    RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
+    //RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
     const storageKey = new ReferenceModeStorageKey(new RamDiskStorageKey('backing'), new RamDiskStorageKey('container'));
 
     const type = new EntityType(new Schema(['AnEntity'], {
@@ -151,9 +150,9 @@ describe('ReferenceModeStore Integration', async () => {
     // Use newHandle here rather than setting up a store inside the arc, as this ensures writeHandle and readHandle
     // are on top of different storage stacks.
     const writeHandle = await newHandle(new StoreInfo({storageKey, type, id: 'write-handle'}),
-        Runtime.newForNodeTesting().newArc('testWriteArc'));
+        new Runtime().newArc('testWriteArc'));
     const readHandle = await newHandle(new StoreInfo({storageKey, type, id: 'read-handle'}),
-        Runtime.newForNodeTesting().newArc('testReadArc'));
+        new Runtime().newArc('testReadArc'));
 
     readHandle.particle = new Particle();
     const returnPromise = new Promise((resolve, reject) => {
@@ -179,9 +178,9 @@ describe('ReferenceModeStore Integration', async () => {
 
   it('will send an ordered list from one handle to another (shared store)', async () => {
     const runtime = new Runtime();
-    RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
+    //RamDiskStorageDriverProvider.register(runtime.getMemoryProvider());
     const storageKey = new ReferenceModeStorageKey(new RamDiskStorageKey('backing'), new RamDiskStorageKey('container'));
-    const arc = Runtime.newForNodeTesting().newArc('testArc');
+    const arc = new Runtime().newArc('testArc');
 
     const type = new EntityType(new Schema(['AnEntity'], {foo: {kind: 'schema-ordered-list', schema: {kind: 'schema-primitive', type: 'Text'}}})).collectionOf();
 

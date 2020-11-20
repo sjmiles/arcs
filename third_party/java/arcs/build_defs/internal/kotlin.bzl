@@ -64,6 +64,8 @@ COMMON_KOTLINC_OPTS = [
 
 JVM_KOTLINC_OPTS = [
     "-Xskip-runtime-version-check",
+    # TODO(b/173178285): Opt out of IR backend for now.
+    "-Xno-use-ir",
 ]
 
 # Here for future use, bazel (not blaze) specific flags
@@ -139,7 +141,7 @@ def arcs_kt_jvm_library(**kwargs):
         java_library(
             name = name,
             exports = exports,
-            visibility = kwargs["visibility"],
+            visibility = kwargs.get("visibility", None),
             testonly = kwargs.get("testonly", False),
             **java_kwargs
         )
