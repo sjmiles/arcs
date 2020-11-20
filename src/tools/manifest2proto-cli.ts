@@ -56,7 +56,7 @@ if (opts._.some((file) => !file.endsWith('.arcs'))) {
 
 async function main() {
   try {
-    const runtime = Runtime.init('../..', PATHS);
+    const runtime = new Runtime({rootPath: '../..', urlMap: PATHS});
     fs.mkdirSync(opts.outdir, {recursive: true});
 
     const buffer = await encodeManifestToProto(runtime, opts._[0]);
