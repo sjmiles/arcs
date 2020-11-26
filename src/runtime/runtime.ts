@@ -11,8 +11,7 @@
 import {assert} from '../platform/assert-web.js';
 import {Description} from './description.js';
 import {Manifest} from './manifest.js';
-import {Arc} from './arc.js';
-import {CapabilitiesResolver} from './capabilities-resolver.js';
+import {ArcOptions, Arc} from './arc.js';
 import {RuntimeCacheService} from './runtime-cache.js';
 import {IdGenerator, ArcId, Id} from './id.js';
 import {PecFactory} from './particle-execution-context.js';
@@ -28,12 +27,13 @@ import {workerPool} from './worker-pool.js';
 import {Modality} from './arcs-types/modality.js';
 import {StorageKey} from './storage/storage-key.js';
 import {StorageKeyFactory} from './storage-key-factory.js';
-import {StorageKeyParser} from './storage/storage-key-parser.js';
 import {DriverFactory} from './storage/drivers/driver-factory.js';
-import {RamDiskStorageDriverProvider} from './storage/drivers/ramdisk.js';
-import {SimpleVolatileMemoryProvider, VolatileMemoryProvider, VolatileStorageKey, VolatileStorageKeyFactory} from './storage/drivers/volatile.js';
+import {StorageKeyParser} from './storage/storage-key-parser.js';
+import {_CapabilitiesResolver} from './capabilities-resolver.js';
 import {StorageEndpointManager} from './storage/storage-manager.js';
 import {DirectStorageEndpointManager} from './storage/direct-storage-endpoint-manager.js';
+import {RamDiskStorageDriverProvider} from './storage/drivers/ramdisk.js';
+import {SimpleVolatileMemoryProvider, VolatileMemoryProvider, VolatileStorageKey, VolatileStorageKeyFactory, VolatileStorageDriverProvider} from './storage/drivers/volatile.js';
 //import {Env} from './env.js';
 
 const {warn} = logsFactory('Runtime', 'orange');
@@ -62,32 +62,21 @@ export type RuntimeArcOptions = Readonly<{
   modality?: Modality;
 }>;
 
-// TODO(sjmiles): weird layering here due to dancing around global state
-let staticMemoryProvider;
-const initDrivers = () => {
-  VolatileStorageKey.register();
-  staticMemoryProvider = new SimpleVolatileMemoryProvider();
-  RamDiskStorageDriverProvider.register(staticMemoryProvider);
-};
-
-initDrivers();
+type StorageKeyPrefixer = (arcId: ArcId) => StorageKey;
 
 const nob = Object.create(null);
 
 @SystemTrace
 export class Runtime {
+
+  // TODO(sjmiles): patching over layer problems due to static objects
+  static resetDrivers(noDefault?: true) {
+    console.log('!FrOnK');
+  }
+
   // TODO(sjmiles): static methods represent boilerplate.
   // There's no essential reason they are part of Runtime.
-  // Consider!
-
-  static resetDrivers(noDefault?: true) {
-    DriverFactory.providers = new Set();
-    StorageKeyParser.reset();
-    CapabilitiesResolver.reset();
-    if (!noDefault) {
-      initDrivers();
-    }
-  }
+  // Consider.
 
   static mapFromRootPath(root: string) {
     // TODO(sjmiles): this is a commonly-used map, but it's not generic enough to live here.
@@ -152,9 +141,12 @@ export class Runtime {
   public readonly loader: Loader | null;
   private cacheService: RuntimeCacheService;
   private composerClass: typeof SlotComposer | null;
-  private memoryProvider: VolatileMemoryProvider;
-  readonly storageManager: StorageEndpointManager;
-  readonly arcById = new Map<string, Arc>();
+  public memoryProvider: VolatileMemoryProvider;
+  public readonly storageManager: StorageEndpointManager;
+  public readonly arcById = new Map<string, Arc>();
+  public driverFactory: DriverFactory;
+  public storageKeyParser: StorageKeyParser;
+  public capabilitiesResolver: _CapabilitiesResolver;
 
   constructor(opts: RuntimeOptions = {}) {
     const customMap = opts.urlMap || nob;
@@ -163,10 +155,31 @@ export class Runtime {
     this.pecFactory = opts.pecFactory || pecIndustry(this.loader);
     this.composerClass = opts.composerClass || SlotComposer;
     this.cacheService = new RuntimeCacheService();
-    this.memoryProvider = opts.memoryProvider || staticMemoryProvider;
+    this.memoryProvider = opts.memoryProvider || new SimpleVolatileMemoryProvider();
     this.storageManager = opts.storageManager || new DirectStorageEndpointManager();
     this.context = opts.context || new Manifest({id: 'manifest:default'});
+    this.initDrivers();
     // user information. One persona per runtime for now.
+  }
+
+  initDrivers() {
+    // storage drivers
+    this.driverFactory = new DriverFactory();
+    this.storageKeyParser = new StorageKeyParser();
+    this.capabilitiesResolver = new _CapabilitiesResolver();
+    VolatileStorageKey.register(this);
+    // TODO(sjmiles): affects DriverFactory
+    RamDiskStorageDriverProvider.register(this);
+  }
+
+  resetDrivers() {
+    this.driverFactory.providers = new Set();
+    this.storageKeyParser.reset();
+    this.capabilitiesResolver.reset();
+  }
+
+  destroy() {
+    workerPool.clear();
   }
 
   getCacheService() {
@@ -177,19 +190,24 @@ export class Runtime {
     return this.memoryProvider;
   }
 
-  destroy() {
-    workerPool.clear();
-  }
-
-  buildArcParams(name?: string) {
+  buildArcParams(name?: string, storageKeyPrefix?: StorageKeyPrefixer): ArcOptions {
     const id = IdGenerator.newSession().newArcId(name);
     const {loader, context} = this;
-    const pecFactories = [this.pecFactory];
-    const slotComposer = this.composerClass ? new this.composerClass() : null;
     const factories = [new VolatileStorageKeyFactory()];
-    const storageManager = this.storageManager;
-    const capabilitiesResolver = new CapabilitiesResolver({arcId: id, factories});
-    return {id, loader, pecFactories, slotComposer, storageManager, capabilitiesResolver, context};
+    return {
+      id,
+      loader,
+      context,
+      pecFactories: [this.pecFactory],
+      slotComposer: this.composerClass ? new this.composerClass() : null,
+      storageManager: this.storageManager,
+      capabilitiesResolver: new _CapabilitiesResolver({arcId: id, factories}),
+      driverFactory: this.driverFactory,
+      storageKey: storageKeyPrefix ? storageKeyPrefix(id) : new VolatileStorageKey(id, '')
+    };
+    //const volatileStorageDriverProvider = new VolatileStorageDriverProvider(this);
+    //DriverFactory.register(this.volatileStorageDriverProvider);
+    //return {id, loader, pecFactories, slotComposer, storageManager, capabilitiesResolver, context};
   }
 
   // TODO(shans): Clean up once old storage is removed.
@@ -201,9 +219,9 @@ export class Runtime {
     const slotComposer = this.composerClass ? new this.composerClass() : null;
     const storageKey = storageKeyPrefix ? storageKeyPrefix(id) : new VolatileStorageKey(id, '');
     const factories = (options && options.storargeKeyFactories) || [new VolatileStorageKeyFactory()];
-    const capabilitiesResolver = new CapabilitiesResolver({arcId: id, factories});
-    const {loader, context, storageManager} = this;
-    return new Arc({id, storageKey, capabilitiesResolver, loader, slotComposer, context, storageManager, ...options});
+    const capabilitiesResolver = new _CapabilitiesResolver({arcId: id, factories});
+    const {loader, context, storageManager, driverFactory} = this;
+    return new Arc({id, storageKey, capabilitiesResolver, loader, slotComposer, context, storageManager, driverFactory, ...options});
   }
 
   /**
@@ -212,10 +230,15 @@ export class Runtime {
    * (2) a deserialized arc (TODO: needs implementation)
    * (3) a newly created arc
    */
-  runArc(name: string, storageKeyPrefix: (arcId: ArcId) => StorageKey, options?: RuntimeArcOptions): Arc {
+  runArc(name: string, storageKeyPrefix: StorageKeyPrefixer, options?: RuntimeArcOptions): Arc {
     if (!this.arcById.has(name)) {
       // TODO: Support deserializing serialized arcs.
-      this.arcById.set(name, this.newArc(name, storageKeyPrefix, options));
+      const params = {
+        ...this.buildArcParams(name, storageKeyPrefix),
+        ...options
+      };
+      const arc = new Arc(params);
+      this.arcById.set(name, arc);
     }
     return this.arcById.get(name);
   }
